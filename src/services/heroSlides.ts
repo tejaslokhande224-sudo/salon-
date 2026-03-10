@@ -24,9 +24,10 @@ export const heroSlideService = {
     const { data, error } = await supabase
       .from('hero_slides')
       .insert([slideData])
-      .select();
+      .select()
+      .single();
     if (error) throw error;
-    return data[0];
+    return data;
   },
 
   async updateSlide(id: string, slideData: any) {
@@ -34,9 +35,10 @@ export const heroSlideService = {
       .from('hero_slides')
       .update(slideData)
       .eq('id', id)
-      .select();
+      .select()
+      .single();
     if (error) throw error;
-    return data[0];
+    return data;
   },
 
   async deleteSlide(id: string) {

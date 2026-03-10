@@ -18,15 +18,9 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    async function loadData() {
+    async function loadHero() {
       try {
-        const [slidesData, servicesData, offersData, reviewsData] = await Promise.all([
-          heroSlideService.getActiveSlides(),
-          serviceService.getActiveServices(),
-          offerService.getActiveOffers(),
-          reviewService.getVisibleReviews()
-        ]);
-
+        const slidesData = await heroSlideService.getActiveSlides();
         if (slidesData && slidesData.length > 0) {
           setSlides(slidesData);
         } else {
@@ -40,17 +34,31 @@ export default function Home() {
             button_link: '/book'
           }]);
         }
+      } catch (error) {
+        console.error('Failed to load hero slides:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    async function loadOtherData() {
+      try {
+        const [servicesData, offersData, reviewsData] = await Promise.all([
+          serviceService.getActiveServices(),
+          offerService.getActiveOffers(),
+          reviewService.getVisibleReviews()
+        ]);
 
         setFeaturedServices((servicesData || []).filter((s: any) => s.is_featured).slice(0, 6));
         setOffers((offersData || []).slice(0, 3));
         setTopReviews((reviewsData || []).slice(0, 3));
       } catch (error) {
-        console.error('Failed to load home data:', error);
-      } finally {
-        setIsLoading(false);
+        console.error('Failed to load other home data:', error);
       }
     }
-    loadData();
+
+    loadHero();
+    loadOtherData();
   }, []);
 
   useEffect(() => {

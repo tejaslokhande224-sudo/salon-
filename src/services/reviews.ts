@@ -22,7 +22,7 @@ export const reviewService = {
   },
 
   async createReview(reviewData: any) {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('reviews')
       .insert([{
         customer_name: reviewData.customer_name,
@@ -31,9 +31,11 @@ export const reviewService = {
         service_tag: reviewData.service_tag || null,
         is_visible: reviewData.is_visible ?? false,
         is_featured: reviewData.is_featured ?? false
-      }]);
+      }])
+      .select()
+      .single();
     if (error) throw error;
-    return true;
+    return data;
   },
 
   async updateReview(id: string, reviewData: any) {

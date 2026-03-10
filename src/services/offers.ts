@@ -24,9 +24,10 @@ export const offerService = {
     const { data, error } = await supabase
       .from('offers')
       .insert([offerData])
-      .select();
+      .select()
+      .single();
     if (error) throw error;
-    return data[0];
+    return data;
   },
 
   async updateOffer(id: string, offerData: any) {
@@ -34,9 +35,10 @@ export const offerService = {
       .from('offers')
       .update(offerData)
       .eq('id', id)
-      .select();
+      .select()
+      .single();
     if (error) throw error;
-    return data[0];
+    return data;
   },
 
   async deleteOffer(id: string) {

@@ -14,9 +14,10 @@ export const galleryService = {
     const { data, error } = await supabase
       .from('gallery_items')
       .insert([itemData])
-      .select();
+      .select()
+      .single();
     if (error) throw error;
-    return data[0];
+    return data;
   },
 
   async updateGalleryItem(id: string, itemData: any) {
@@ -24,9 +25,10 @@ export const galleryService = {
       .from('gallery_items')
       .update(itemData)
       .eq('id', id)
-      .select();
+      .select()
+      .single();
     if (error) throw error;
-    return data[0];
+    return data;
   },
 
   async deleteGalleryItem(id: string) {

@@ -21,6 +21,26 @@ export default function Settings() {
       const data = await settingsService.getSettings();
       if (data) {
         setSettings(data);
+      } else {
+        // Initialize with defaults if no settings exist
+        setSettings({
+          salon_name: 'Glow Up Unisex Salon',
+          logo_url: '',
+          phone: '',
+          email: '',
+          address: '',
+          map_url: '',
+          social_links: { instagram: '', facebook: '', whatsapp: '' },
+          opening_hours: {
+            monday: '10:00 AM - 08:00 PM',
+            tuesday: '10:00 AM - 08:00 PM',
+            wednesday: '10:00 AM - 08:00 PM',
+            thursday: '10:00 AM - 08:00 PM',
+            friday: '10:00 AM - 08:00 PM',
+            saturday: '10:00 AM - 08:00 PM',
+            sunday: '10:00 AM - 08:00 PM'
+          }
+        });
       }
     } catch (error) {
       console.error('Failed to load settings:', error);
@@ -33,7 +53,10 @@ export default function Settings() {
     if (!settings) return;
     try {
       setIsSaving(true);
-      await settingsService.updateSettings(settings);
+      const savedData = await settingsService.updateSettings(settings);
+      if (savedData) {
+        setSettings(savedData);
+      }
       alert('Settings saved successfully!');
     } catch (error) {
       console.error('Failed to save settings:', error);

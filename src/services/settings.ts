@@ -14,23 +14,25 @@ export const settingsService = {
 
   async updateSettings(settingsData: any) {
     // Check if settings exist
-    const { data: existing } = await supabase.from('settings').select('id').limit(1).single();
+    const { data: existing } = await supabase.from('settings').select('id').maybeSingle();
     
     if (existing) {
       const { data, error } = await supabase
         .from('settings')
         .update(settingsData)
         .eq('id', existing.id)
-        .select();
+        .select()
+        .single();
       if (error) throw error;
-      return data[0];
+      return data;
     } else {
       const { data, error } = await supabase
         .from('settings')
         .insert([settingsData])
-        .select();
+        .select()
+        .single();
       if (error) throw error;
-      return data[0];
+      return data;
     }
   }
 };

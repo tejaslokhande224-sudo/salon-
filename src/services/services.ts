@@ -14,9 +14,10 @@ export const serviceService = {
     const { data, error } = await supabase
       .from('service_categories')
       .insert([categoryData])
-      .select();
+      .select()
+      .single();
     if (error) throw error;
-    return data[0];
+    return data;
   },
 
   async updateCategory(id: string, categoryData: any) {
@@ -24,9 +25,10 @@ export const serviceService = {
       .from('service_categories')
       .update(categoryData)
       .eq('id', id)
-      .select();
+      .select()
+      .single();
     if (error) throw error;
-    return data[0];
+    return data;
   },
 
   async deleteCategory(id: string) {
@@ -66,9 +68,10 @@ export const serviceService = {
     const { data, error } = await supabase
       .from('services')
       .insert([serviceData])
-      .select();
+      .select()
+      .single();
     if (error) throw error;
-    return data[0];
+    return data;
   },
 
   async updateService(id: string, serviceData: any) {
@@ -76,9 +79,10 @@ export const serviceService = {
       .from('services')
       .update(serviceData)
       .eq('id', id)
-      .select();
+      .select()
+      .single();
     if (error) throw error;
-    return data[0];
+    return data;
   },
 
   async deleteService(id: string) {

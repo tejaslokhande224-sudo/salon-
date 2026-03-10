@@ -24,9 +24,10 @@ export const staffService = {
     const { data, error } = await supabase
       .from('staff')
       .insert([staffData])
-      .select();
+      .select()
+      .single();
     if (error) throw error;
-    return data[0];
+    return data;
   },
 
   async updateStaff(id: string, staffData: any) {
@@ -34,9 +35,10 @@ export const staffService = {
       .from('staff')
       .update(staffData)
       .eq('id', id)
-      .select();
+      .select()
+      .single();
     if (error) throw error;
-    return data[0];
+    return data;
   },
 
   async deleteStaff(id: string) {
