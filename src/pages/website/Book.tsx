@@ -72,6 +72,10 @@ export default function Book() {
         });
       }
 
+      if (!customer) {
+        throw new Error('Failed to create or retrieve customer');
+      }
+
       // 2. Create appointment
       await appointmentService.createAppointment({
         customer_id: customer.id,

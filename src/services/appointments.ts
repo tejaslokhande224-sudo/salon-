@@ -55,12 +55,11 @@ export const appointmentService = {
   },
 
   async createAppointment(appointmentData: any) {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('appointments')
-      .insert([appointmentData])
-      .select();
+      .insert([appointmentData]);
     if (error) throw error;
-    return data[0];
+    return true;
   },
 
   async updateAppointmentStatus(id: string, status: string) {

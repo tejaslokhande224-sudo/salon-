@@ -15,19 +15,27 @@ export const customerService = {
       .from('customers')
       .select('*')
       .eq('phone', phone)
-      .single();
+      .maybeSingle();
     
-    if (error && error.code !== 'PGRST116') throw error; // PGRST116 is not found
+    if (error) throw error;
     return data;
   },
 
   async createCustomer(customerData: any) {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('customers')
-      .insert([customerData])
-      .select();
+      .insert([customerData]);
     if (error) throw error;
-    return data[0];
+    
+    // Fetch the created customer by phone safely
+    const { data: newCustomer, error: fetchError } = await supabase
+      .from('customers')
+      .select('*')
+      .eq('phone', customerData.phone)
+      .maybeSingle();
+      
+    if (fetchError) throw fetchError;
+    return newCustomer;
   },
 
   async getCustomerCount() {
