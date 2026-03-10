@@ -32,22 +32,49 @@ export default function Enquiries() {
   });
 
   useEffect(() => {
-    loadEnquiries();
-    loadData();
-  }, []);
+    let isMounted = true;
+    
+    async function init() {
+      try {
+        setIsLoading(true);
+        const [enquiriesRes, srvsRes, stfRes] = await Promise.allSettled([
+          enquiryService.getEnquiries(),
+          serviceService.getActiveServices(),
+          staffService.getActiveStaff()
+        ]);
 
-  async function loadData() {
-    try {
-      const [srvs, stf] = await Promise.all([
-        serviceService.getActiveServices(),
-        staffService.getActiveStaff()
-      ]);
-      setServices(srvs || []);
-      setStaff(stf || []);
-    } catch (error) {
-      console.error('Failed to load data:', error);
+        if (!isMounted) return;
+
+        if (enquiriesRes.status === 'fulfilled') {
+          setEnquiries(enquiriesRes.value || []);
+        } else {
+          console.error('Failed to load enquiries:', enquiriesRes.reason);
+          setEnquiries([]);
+        }
+
+        if (srvsRes.status === 'fulfilled') {
+          setServices(srvsRes.value || []);
+        } else {
+          console.error('Failed to load services:', srvsRes.reason);
+          setServices([]);
+        }
+
+        if (stfRes.status === 'fulfilled') {
+          setStaff(stfRes.value || []);
+        } else {
+          console.error('Failed to load staff:', stfRes.reason);
+          setStaff([]);
+        }
+      } catch (error) {
+        console.error('Failed to initialize Enquiries page:', error);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
     }
-  }
+
+    init();
+    return () => { isMounted = false; };
+  }, []);
 
   async function loadEnquiries() {
     try {
@@ -56,8 +83,23 @@ export default function Enquiries() {
       setEnquiries(data || []);
     } catch (error) {
       console.error('Failed to load enquiries:', error);
+      setEnquiries([]);
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function loadData() {
+    // Kept for compatibility if called elsewhere, but initial load is handled in useEffect
+    try {
+      const [srvs, stf] = await Promise.allSettled([
+        serviceService.getActiveServices(),
+        staffService.getActiveStaff()
+      ]);
+      if (srvs.status === 'fulfilled') setServices(srvs.value || []);
+      if (stf.status === 'fulfilled') setStaff(stf.value || []);
+    } catch (error) {
+      console.error('Failed to load data:', error);
     }
   }
 

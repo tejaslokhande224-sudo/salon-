@@ -22,6 +22,7 @@ export default function Appointments() {
       setAppointments(data || []);
     } catch (error) {
       console.error('Failed to load appointments:', error);
+      setAppointments([]);
     } finally {
       setIsLoading(false);
     }

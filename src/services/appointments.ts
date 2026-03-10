@@ -46,6 +46,7 @@ export const appointmentService = {
       .eq('status', 'completed');
     
     if (error) throw error;
+    if (!data) return 0;
     
     const total = data.reduce((sum: number, item: any) => {
       return sum + (item.services?.price || 0);

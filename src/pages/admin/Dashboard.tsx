@@ -20,15 +20,36 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
     async function loadDashboardData() {
       try {
-        const [appStats, enquiriesCount, services, appointments, revenue] = await Promise.all([
+        setIsLoading(true);
+        const results = await Promise.allSettled([
           appointmentService.getDashboardStats(),
           enquiryService.getEnquiryCount(),
           serviceService.getActiveServices(),
           appointmentService.getAppointments(),
           appointmentService.getTotalRevenue()
         ]);
+
+        if (!isMounted) return;
+
+        const [appStatsRes, enquiriesCountRes, servicesRes, appointmentsRes, revenueRes] = results;
+
+        const appStats = appStatsRes.status === 'fulfilled' ? appStatsRes.value : null;
+        if (appStatsRes.status === 'rejected') console.error('Failed to load appStats:', appStatsRes.reason);
+
+        const enquiriesCount = enquiriesCountRes.status === 'fulfilled' ? enquiriesCountRes.value : 0;
+        if (enquiriesCountRes.status === 'rejected') console.error('Failed to load enquiriesCount:', enquiriesCountRes.reason);
+
+        const services = servicesRes.status === 'fulfilled' ? servicesRes.value : [];
+        if (servicesRes.status === 'rejected') console.error('Failed to load services:', servicesRes.reason);
+
+        const appointments = appointmentsRes.status === 'fulfilled' ? appointmentsRes.value : [];
+        if (appointmentsRes.status === 'rejected') console.error('Failed to load appointments:', appointmentsRes.reason);
+
+        const revenue = revenueRes.status === 'fulfilled' ? revenueRes.value : 0;
+        if (revenueRes.status === 'rejected') console.error('Failed to load revenue:', revenueRes.reason);
 
         setStats({
           todayAppointments: appStats?.today || 0,
@@ -43,10 +64,11 @@ export default function Dashboard() {
       } catch (error) {
         console.error('Failed to load dashboard data:', error);
       } finally {
-        setIsLoading(false);
+        if (isMounted) setIsLoading(false);
       }
     }
     loadDashboardData();
+    return () => { isMounted = false; };
   }, []);
 
   const revenueData = [

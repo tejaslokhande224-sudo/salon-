@@ -101,5 +101,23 @@ export const serviceService = {
         throw error;
       }
     }
+  },
+
+  async uploadServiceImage(file: File) {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('service-images')
+      .upload(filePath, file);
+
+    if (uploadError) throw uploadError;
+
+    const { data } = supabase.storage
+      .from('service-images')
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
   }
 };

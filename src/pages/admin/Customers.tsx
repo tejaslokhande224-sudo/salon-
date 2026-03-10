@@ -22,6 +22,7 @@ export default function Customers() {
       setCustomers(data || []);
     } catch (error) {
       console.error('Failed to load customers:', error);
+      setCustomers([]);
     } finally {
       setIsLoading(false);
     }

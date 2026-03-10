@@ -5,7 +5,7 @@ import { Input } from '@/src/components/ui/Input';
 import { Badge } from '@/src/components/ui/Badge';
 import { Select } from '@/src/components/ui/Select';
 import { Textarea } from '@/src/components/ui/Textarea';
-import { Search, Plus, Edit, Trash2, Sparkles, X, List } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Sparkles, X, List, Upload, Image as ImageIcon } from 'lucide-react';
 import { serviceService } from '@/src/services/services';
 
 export default function Services() {
@@ -24,6 +24,7 @@ export default function Services() {
     price: '',
     duration_minutes: '',
     description: '',
+    image_url: '',
     is_active: true,
     is_featured: false
   });
@@ -69,6 +70,7 @@ export default function Services() {
         price: service.price.toString(),
         duration_minutes: service.duration_minutes.toString(),
         description: service.description || '',
+        image_url: service.image_url || '',
         is_active: service.is_active,
         is_featured: service.is_featured || false
       });
@@ -80,6 +82,7 @@ export default function Services() {
         price: '',
         duration_minutes: '',
         description: '',
+        image_url: '',
         is_active: true,
         is_featured: false
       });
@@ -98,6 +101,22 @@ export default function Services() {
       ...prev,
       [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
     }));
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsSaving(true);
+      const url = await serviceService.uploadServiceImage(file);
+      setFormData(prev => ({ ...prev, image_url: url }));
+    } catch (error) {
+      console.error('Failed to upload image:', error);
+      alert('Failed to upload image.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -523,6 +542,37 @@ export default function Services() {
                       placeholder="45" 
                       className="bg-zinc-900 border-zinc-800 text-zinc-100" 
                     />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Service Image</label>
+                  <div className="flex items-center space-x-4">
+                    {formData.image_url ? (
+                      <div className="relative h-20 w-20 rounded-lg overflow-hidden border border-zinc-800">
+                        <img src={formData.image_url} alt="Service" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, image_url: '' }))}
+                          className="absolute top-1 right-1 bg-black/60 rounded-full p-1 hover:bg-rose-500 transition-colors"
+                        >
+                          <X className="h-3 w-3 text-white" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="h-20 w-20 rounded-lg border border-dashed border-zinc-700 bg-zinc-900/50 flex items-center justify-center text-zinc-500">
+                        <ImageIcon className="h-6 w-6" />
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        disabled={isSaving}
+                        className="bg-zinc-900 border-zinc-800 text-zinc-100 file:bg-zinc-800 file:text-zinc-300 file:border-0 file:rounded-md file:px-4 file:py-1 file:mr-4 hover:file:bg-zinc-700 cursor-pointer"
+                      />
+                      <p className="text-xs text-zinc-500 mt-2">Recommended size: 800x600px</p>
+                    </div>
                   </div>
                 </div>
                 <div className="space-y-2">

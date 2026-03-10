@@ -102,6 +102,15 @@ export default function Services() {
                         >
                           <Card className="flex flex-col justify-between border-zinc-800 bg-zinc-950/80 transition-all duration-500 hover:border-gold-500/50 hover:shadow-[0_10px_40px_-10px_rgba(234,179,8,0.1)] h-full group relative overflow-hidden">
                             <div className="absolute inset-0 bg-gradient-to-br from-gold-500/0 via-gold-500/0 to-gold-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                            {service.image_url ? (
+                              <div className="h-48 w-full overflow-hidden border-b border-zinc-900">
+                                <img src={service.image_url} alt={service.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" referrerPolicy="no-referrer" />
+                              </div>
+                            ) : (
+                              <div className="h-48 w-full overflow-hidden border-b border-zinc-900 bg-zinc-900/50 flex items-center justify-center">
+                                <Sparkles className="h-8 w-8 text-zinc-700" />
+                              </div>
+                            )}
                             <CardContent className="p-8 flex-1 flex flex-col relative z-10">
                               <div className="mb-6 flex items-start justify-between">
                                 <h3 className="text-xl font-serif font-medium text-zinc-100 pr-4">{service.name}</h3>
