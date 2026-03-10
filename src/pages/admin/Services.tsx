@@ -5,7 +5,7 @@ import { Input } from '@/src/components/ui/Input';
 import { Badge } from '@/src/components/ui/Badge';
 import { Select } from '@/src/components/ui/Select';
 import { Textarea } from '@/src/components/ui/Textarea';
-import { Search, Plus, Edit, Trash2, Sparkles, X } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Sparkles, X, List } from 'lucide-react';
 import { serviceService } from '@/src/services/services';
 
 export default function Services() {
@@ -13,6 +13,8 @@ export default function Services() {
   const [services, setServices] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Service Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [currentService, setCurrentService] = useState<any>(null);
@@ -24,6 +26,17 @@ export default function Services() {
     description: '',
     is_active: true,
     is_featured: false
+  });
+
+  // Category Modal State
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [isCategoryListModalOpen, setIsCategoryListModalOpen] = useState(false);
+  const [currentCategory, setCurrentCategory] = useState<any>(null);
+  const [categoryFormData, setCategoryFormData] = useState({
+    name: '',
+    slug: '',
+    sort_order: '0',
+    is_active: true
   });
 
   useEffect(() => {
@@ -46,12 +59,13 @@ export default function Services() {
     }
   }
 
+  // --- Service Handlers ---
   const handleOpenModal = (service: any = null) => {
     if (service) {
       setCurrentService(service);
       setFormData({
         name: service.name,
-        category_id: service.category_id,
+        category_id: service.category_id || '',
         price: service.price.toString(),
         duration_minutes: service.duration_minutes.toString(),
         description: service.description || '',
@@ -93,7 +107,8 @@ export default function Services() {
       const payload = {
         ...formData,
         price: parseFloat(formData.price),
-        duration_minutes: parseInt(formData.duration_minutes)
+        duration_minutes: parseInt(formData.duration_minutes),
+        category_id: formData.category_id || null
       };
 
       if (currentService) {
@@ -101,8 +116,8 @@ export default function Services() {
       } else {
         await serviceService.createService(payload);
       }
-      
       await loadData();
+      
       handleCloseModal();
     } catch (error) {
       console.error('Failed to save service:', error);
@@ -119,7 +134,86 @@ export default function Services() {
         setServices(services.filter(s => s.id !== id));
       } catch (error) {
         console.error('Failed to delete service:', error);
-        alert('Failed to delete service.');
+        // Fallback to soft delete
+        try {
+          await serviceService.updateService(id, { is_active: false });
+          setServices(services.map(s => s.id === id ? { ...s, is_active: false } : s));
+          alert('Service could not be deleted because it is referenced elsewhere. It has been marked as inactive instead.');
+        } catch (fallbackError) {
+          alert('Failed to delete or deactivate service.');
+        }
+      }
+    }
+  };
+
+  // --- Category Handlers ---
+  const handleOpenCategoryModal = (category: any = null) => {
+    if (category) {
+      setCurrentCategory(category);
+      setCategoryFormData({
+        name: category.name,
+        slug: category.slug,
+        sort_order: category.sort_order.toString(),
+        is_active: category.is_active
+      });
+    } else {
+      setCurrentCategory(null);
+      setCategoryFormData({
+        name: '',
+        slug: '',
+        sort_order: '0',
+        is_active: true
+      });
+    }
+    setIsCategoryModalOpen(true);
+  };
+
+  const handleCloseCategoryModal = () => {
+    setIsCategoryModalOpen(false);
+    setCurrentCategory(null);
+  };
+
+  const handleCategoryInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type } = e.target;
+    setCategoryFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+    }));
+  };
+
+  const handleCategorySave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setIsSaving(true);
+      const payload = {
+        ...categoryFormData,
+        sort_order: parseInt(categoryFormData.sort_order)
+      };
+
+      if (currentCategory) {
+        await serviceService.updateCategory(currentCategory.id, payload);
+      } else {
+        await serviceService.createCategory(payload);
+      }
+      await loadData();
+      
+      handleCloseCategoryModal();
+    } catch (error) {
+      console.error('Failed to save category:', error);
+      alert('Failed to save category.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDeleteCategory = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this category? Services in this category will become uncategorized.')) {
+      try {
+        await serviceService.deleteCategory(id);
+        await loadData();
+      } catch (error) {
+        console.error('Failed to delete category:', error);
+        alert('Failed to delete category.');
       }
     }
   };
@@ -138,9 +232,17 @@ export default function Services() {
           </h1>
           <p className="text-zinc-400 mt-1 font-light">Manage your salon service offerings</p>
         </div>
-        <Button variant="luxury" className="uppercase tracking-wider text-xs font-semibold" onClick={() => handleOpenModal()}>
-          <Plus className="mr-2 h-4 w-4" /> Add Service
-        </Button>
+        <div className="flex space-x-3">
+          <Button variant="outline" className="uppercase tracking-wider text-xs font-semibold border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white" onClick={() => setIsCategoryListModalOpen(true)}>
+            <List className="mr-2 h-4 w-4" /> Categories
+          </Button>
+          <Button variant="outline" className="uppercase tracking-wider text-xs font-semibold border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white" onClick={() => handleOpenCategoryModal()}>
+            <Plus className="mr-2 h-4 w-4" /> Add Category
+          </Button>
+          <Button variant="luxury" className="uppercase tracking-wider text-xs font-semibold" onClick={() => handleOpenModal()}>
+            <Plus className="mr-2 h-4 w-4" /> Add Service
+          </Button>
+        </div>
       </div>
 
       <Card className="bg-zinc-950/80 border-zinc-800 backdrop-blur-md">
@@ -174,11 +276,11 @@ export default function Services() {
               <tbody className="divide-y divide-zinc-800/50">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-zinc-500">Loading services...</td>
+                    <td colSpan={7} className="px-6 py-8 text-center text-zinc-500">Loading services...</td>
                   </tr>
                 ) : filteredServices.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-8 text-center text-zinc-500">No services found.</td>
+                    <td colSpan={7} className="px-6 py-8 text-center text-zinc-500">No services found.</td>
                   </tr>
                 ) : (
                   filteredServices.map((service) => (
@@ -222,7 +324,142 @@ export default function Services() {
         </CardContent>
       </Card>
 
-      {/* Add/Edit Modal */}
+      {/* Categories List Modal */}
+      {isCategoryListModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <Card className="w-full max-w-3xl bg-zinc-950 border-zinc-800 shadow-2xl">
+            <CardHeader className="border-b border-zinc-900 flex flex-row items-center justify-between">
+              <CardTitle className="text-xl font-serif text-zinc-50">Manage Categories</CardTitle>
+              <div className="flex items-center space-x-2">
+                <Button variant="luxury" size="sm" onClick={() => handleOpenCategoryModal()}>
+                  <Plus className="h-4 w-4 mr-1" /> Add
+                </Button>
+                <Button variant="ghost" size="icon" onClick={() => setIsCategoryListModalOpen(false)} className="text-zinc-500 hover:text-white">
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0 max-h-[60vh] overflow-y-auto">
+              <table className="w-full text-left text-sm text-zinc-400">
+                <thead className="bg-zinc-900/50 text-xs uppercase text-zinc-500 font-semibold tracking-wider border-b border-zinc-800 sticky top-0">
+                  <tr>
+                    <th className="px-6 py-4">Name</th>
+                    <th className="px-6 py-4">Slug</th>
+                    <th className="px-6 py-4">Sort Order</th>
+                    <th className="px-6 py-4">Status</th>
+                    <th className="px-6 py-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-800/50">
+                  {categories.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-8 text-center text-zinc-500">No categories found.</td>
+                    </tr>
+                  ) : (
+                    categories.map((category) => (
+                      <tr key={category.id} className="hover:bg-zinc-900/50 transition-colors">
+                        <td className="px-6 py-4 font-medium text-zinc-100">{category.name}</td>
+                        <td className="px-6 py-4 text-zinc-400">{category.slug}</td>
+                        <td className="px-6 py-4 text-zinc-400">{category.sort_order}</td>
+                        <td className="px-6 py-4">
+                          {category.is_active ? (
+                            <Badge variant="success">Active</Badge>
+                          ) : (
+                            <Badge variant="secondary">Inactive</Badge>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex items-center justify-end space-x-2">
+                            <Button size="icon" variant="ghost" className="h-8 w-8 text-zinc-500 hover:text-amber-500 hover:bg-amber-500/10" onClick={() => handleOpenCategoryModal(category)}>
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button size="icon" variant="ghost" className="h-8 w-8 text-zinc-500 hover:text-rose-500 hover:bg-rose-500/10" onClick={() => handleDeleteCategory(category.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Add/Edit Category Modal */}
+      {isCategoryModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <Card className="w-full max-w-md bg-zinc-950 border-zinc-800 shadow-2xl">
+            <CardHeader className="border-b border-zinc-900 flex flex-row items-center justify-between">
+              <CardTitle className="text-xl font-serif text-zinc-50">
+                {currentCategory ? 'Edit Category' : 'Add New Category'}
+              </CardTitle>
+              <Button variant="ghost" size="icon" onClick={handleCloseCategoryModal} className="text-zinc-500 hover:text-white">
+                <X className="h-5 w-5" />
+              </Button>
+            </CardHeader>
+            <form onSubmit={handleCategorySave}>
+              <CardContent className="space-y-4 pt-6">
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Category Name</label>
+                  <Input 
+                    required 
+                    name="name"
+                    value={categoryFormData.name}
+                    onChange={handleCategoryInputChange}
+                    placeholder="e.g., Hair Care" 
+                    className="bg-zinc-900 border-zinc-800 text-zinc-100" 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Slug</label>
+                  <Input 
+                    required 
+                    name="slug"
+                    value={categoryFormData.slug}
+                    onChange={handleCategoryInputChange}
+                    placeholder="e.g., hair-care" 
+                    className="bg-zinc-900 border-zinc-800 text-zinc-100" 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Sort Order</label>
+                  <Input 
+                    required 
+                    type="number"
+                    name="sort_order"
+                    value={categoryFormData.sort_order}
+                    onChange={handleCategoryInputChange}
+                    placeholder="0" 
+                    className="bg-zinc-900 border-zinc-800 text-zinc-100" 
+                  />
+                </div>
+                <div className="flex items-center space-x-2 pt-2">
+                  <input 
+                    type="checkbox" 
+                    id="cat_is_active" 
+                    name="is_active"
+                    checked={categoryFormData.is_active}
+                    onChange={handleCategoryInputChange}
+                    className="rounded border-zinc-800 bg-zinc-900 text-gold-500 focus:ring-gold-500/20" 
+                  />
+                  <label htmlFor="cat_is_active" className="text-sm text-zinc-300">Active</label>
+                </div>
+              </CardContent>
+              <div className="p-6 border-t border-zinc-900 flex justify-end space-x-3">
+                <Button type="button" variant="ghost" onClick={handleCloseCategoryModal} className="text-zinc-400 hover:text-white">Cancel</Button>
+                <Button type="submit" variant="luxury" disabled={isSaving}>
+                  {isSaving ? 'Saving...' : 'Save Category'}
+                </Button>
+              </div>
+            </form>
+          </Card>
+        </div>
+      )}
+
+      {/* Add/Edit Service Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
           <Card className="w-full max-w-lg bg-zinc-950 border-zinc-800 shadow-2xl">

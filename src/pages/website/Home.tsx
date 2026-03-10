@@ -41,9 +41,9 @@ export default function Home() {
           }]);
         }
 
-        setFeaturedServices(servicesData.filter((s: any) => s.is_featured).slice(0, 6));
-        setOffers(offersData.slice(0, 3));
-        setTopReviews(reviewsData.filter((r: any) => r.rating === 5).slice(0, 3));
+        setFeaturedServices((servicesData || []).filter((s: any) => s.is_featured).slice(0, 6));
+        setOffers((offersData || []).slice(0, 3));
+        setTopReviews((reviewsData || []).slice(0, 3));
       } catch (error) {
         console.error('Failed to load home data:', error);
       } finally {

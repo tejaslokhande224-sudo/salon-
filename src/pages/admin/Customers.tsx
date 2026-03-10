@@ -98,7 +98,7 @@ export default function Customers() {
                       </td>
                       <td className="px-6 py-4 capitalize">{customer.gender || 'N/A'}</td>
                       <td className="px-6 py-4">
-                        <Badge variant="secondary">{customer.visitHistory?.length || 0} Visits</Badge>
+                        <Badge variant="secondary">—</Badge>
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end space-x-2">

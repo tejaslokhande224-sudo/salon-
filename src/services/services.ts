@@ -10,6 +10,33 @@ export const serviceService = {
     return data;
   },
 
+  async createCategory(categoryData: any) {
+    const { data, error } = await supabase
+      .from('service_categories')
+      .insert([categoryData])
+      .select();
+    if (error) throw error;
+    return data[0];
+  },
+
+  async updateCategory(id: string, categoryData: any) {
+    const { data, error } = await supabase
+      .from('service_categories')
+      .update(categoryData)
+      .eq('id', id)
+      .select();
+    if (error) throw error;
+    return data[0];
+  },
+
+  async deleteCategory(id: string) {
+    const { error } = await supabase
+      .from('service_categories')
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
+  },
+
   async getServices() {
     const { data, error } = await supabase
       .from('services')
@@ -59,6 +86,16 @@ export const serviceService = {
       .from('services')
       .delete()
       .eq('id', id);
-    if (error) throw error;
+    if (error) {
+      if (error.code === '23503') {
+        const { error: updateError } = await supabase
+          .from('services')
+          .update({ is_active: false })
+          .eq('id', id);
+        if (updateError) throw updateError;
+      } else {
+        throw error;
+      }
+    }
   }
 };

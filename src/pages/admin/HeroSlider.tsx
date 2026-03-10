@@ -4,7 +4,7 @@ import { Button } from '@/src/components/ui/Button';
 import { Input } from '@/src/components/ui/Input';
 import { Badge } from '@/src/components/ui/Badge';
 import { Select } from '@/src/components/ui/Select';
-import { Search, Plus, Edit, Trash2, Image as ImageIcon, Sparkles, X } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Image as ImageIcon, Sparkles, X, Check } from 'lucide-react';
 import { heroSlideService } from '@/src/services/heroSlides';
 
 export default function HeroSlider() {
@@ -98,10 +98,18 @@ export default function HeroSlider() {
 
     try {
       setIsSaving(true);
+      const payload = {
+        ...formData,
+        button_text: formData.button_text || null,
+        button_link: formData.button_link || null,
+        title: formData.title || null,
+        subtitle: formData.subtitle || null,
+      };
+
       if (currentSlide) {
-        await heroSlideService.updateSlide(currentSlide.id, formData);
+        await heroSlideService.updateSlide(currentSlide.id, payload);
       } else {
-        await heroSlideService.createSlide(formData);
+        await heroSlideService.createSlide(payload);
       }
       await loadSlides();
       handleCloseModal();
@@ -122,6 +130,24 @@ export default function HeroSlider() {
         console.error('Failed to delete slide:', error);
         alert('Failed to delete slide.');
       }
+    }
+  };
+
+  const handleToggleActive = async (slide: any) => {
+    const newStatus = !slide.is_active;
+    if (newStatus) {
+      const activeCount = slides.filter(s => s.is_active).length;
+      if (activeCount >= 4) {
+        alert('Maximum 4 active slides allowed. Please deactivate another slide first.');
+        return;
+      }
+    }
+    try {
+      await heroSlideService.updateSlide(slide.id, { is_active: newStatus });
+      setSlides(slides.map(s => s.id === slide.id ? { ...s, is_active: newStatus } : s));
+    } catch (error) {
+      console.error('Failed to toggle slide:', error);
+      alert('Failed to update slide status.');
     }
   };
 
@@ -224,6 +250,15 @@ export default function HeroSlider() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end space-x-2">
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            className={`h-8 w-8 ${slide.is_active ? 'text-zinc-500 border-zinc-700 hover:bg-zinc-800 hover:text-zinc-300' : 'text-emerald-500 border-emerald-500/30 hover:bg-emerald-500/10'}`}
+                            onClick={() => handleToggleActive(slide)}
+                            title={slide.is_active ? "Deactivate Slide" : "Activate Slide"}
+                          >
+                            {slide.is_active ? <X className="h-4 w-4" /> : <Check className="h-4 w-4" />}
+                          </Button>
                           <Button size="icon" variant="ghost" className="h-8 w-8 text-zinc-500 hover:text-amber-500 hover:bg-amber-500/10" title="Edit Slide" onClick={() => handleOpenModal(slide)}>
                             <Edit className="h-4 w-4" />
                           </Button>

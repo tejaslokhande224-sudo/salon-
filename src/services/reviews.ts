@@ -15,18 +15,25 @@ export const reviewService = {
       .from('reviews')
       .select('*')
       .eq('is_visible', true)
+      .order('is_featured', { ascending: false })
       .order('created_at', { ascending: false });
     if (error) throw error;
     return data;
   },
 
   async createReview(reviewData: any) {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('reviews')
-      .insert([reviewData])
-      .select();
+      .insert([{
+        customer_name: reviewData.customer_name,
+        rating: reviewData.rating,
+        comment: reviewData.comment,
+        service_tag: reviewData.service_tag || null,
+        is_visible: reviewData.is_visible ?? false,
+        is_featured: reviewData.is_featured ?? false
+      }]);
     if (error) throw error;
-    return data[0];
+    return true;
   },
 
   async updateReview(id: string, reviewData: any) {
@@ -34,9 +41,10 @@ export const reviewService = {
       .from('reviews')
       .update(reviewData)
       .eq('id', id)
-      .select();
+      .select()
+      .single();
     if (error) throw error;
-    return data[0];
+    return data;
   },
 
   async deleteReview(id: string) {

@@ -131,6 +131,7 @@ CREATE TABLE IF NOT EXISTS reviews (
     comment TEXT,
     service_tag TEXT,
     is_visible BOOLEAN DEFAULT TRUE,
+    is_featured BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -253,6 +254,9 @@ CREATE POLICY "Allow public insert" ON appointments FOR INSERT WITH CHECK (true)
 
 DROP POLICY IF EXISTS "Allow public insert" ON customers;
 CREATE POLICY "Allow public insert" ON customers FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow public insert" ON reviews;
+CREATE POLICY "Allow public insert" ON reviews FOR INSERT WITH CHECK (true);
 
 -- 4. Admin Full Access (Secured via is_admin() function)
 DROP POLICY IF EXISTS "Allow admin all" ON staff;

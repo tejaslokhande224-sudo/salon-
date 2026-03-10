@@ -12,7 +12,8 @@ import {
   Settings,
   LogOut,
   Sparkles,
-  MonitorPlay
+  MonitorPlay,
+  Info
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -26,6 +27,7 @@ export default function Sidebar() {
     { name: 'Offers', path: '/admin/offers', icon: Tag },
     { name: 'Gallery', path: '/admin/gallery', icon: ImageIcon },
     { name: 'Hero Slider', path: '/admin/hero-slider', icon: MonitorPlay },
+    { name: 'About Page', path: '/admin/about', icon: Info },
     { name: 'Customers', path: '/admin/customers', icon: Users },
     { name: 'Staff', path: '/admin/staff', icon: UserCircle },
     { name: 'Reviews', path: '/admin/reviews', icon: Star },

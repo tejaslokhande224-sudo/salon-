@@ -31,15 +31,15 @@ export default function Dashboard() {
         ]);
 
         setStats({
-          todayAppointments: appStats.today,
-          pendingAppointments: appStats.pending,
-          completedAppointments: appStats.completed,
-          newEnquiries: enquiriesCount,
-          activeServices: services.length,
-          totalRevenue: revenue
+          todayAppointments: appStats?.today || 0,
+          pendingAppointments: appStats?.pending || 0,
+          completedAppointments: appStats?.completed || 0,
+          newEnquiries: enquiriesCount || 0,
+          activeServices: (services || []).length,
+          totalRevenue: revenue || 0
         });
 
-        setRecentAppointments(appointments.slice(0, 5));
+        setRecentAppointments((appointments || []).slice(0, 5));
       } catch (error) {
         console.error('Failed to load dashboard data:', error);
       } finally {

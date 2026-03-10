@@ -29,6 +29,7 @@ import Staff from './pages/admin/Staff';
 import AdminReviews from './pages/admin/Reviews';
 import Settings from './pages/admin/Settings';
 import HeroSlider from './pages/admin/HeroSlider';
+import AdminAbout from './pages/admin/About';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<any>(null);
@@ -111,6 +112,7 @@ export default function App() {
           <Route path="customers" element={<Customers />} />
           <Route path="staff" element={<Staff />} />
           <Route path="reviews" element={<AdminReviews />} />
+          <Route path="about" element={<AdminAbout />} />
           <Route path="settings" element={<Settings />} />
           <Route path="hero-slider" element={<HeroSlider />} />
         </Route>
